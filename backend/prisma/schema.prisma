@@ -1,0 +1,127 @@
+// DATABASE CONNECTION
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// PRISMA CLIENT
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+// ENUMS
+enum RoomEnum {
+  PG
+  Single
+}
+
+enum PaymentMethod {
+  MANUAL
+  RAZORPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum UserRole {
+  OWNER
+  RENTER
+  ADMIN
+}
+
+///////////////////////
+// USER
+///////////////////////
+model User {
+  id         Int        @id @default(autoincrement())
+  name       String
+  email      String     @unique
+  password String
+
+  role       UserRole   @default(RENTER) 
+
+  properties Property[]
+  agreements Agreement[] @relation("UserAgreements")
+}
+
+///////////////////////
+// PROPERTY
+///////////////////////
+model Property {
+  id           Int      @id @default(autoincrement())
+  propertyName String
+
+  ownerId      Int
+  owner        User     @relation(fields: [ownerId], references: [id])
+
+  rooms        Room[]
+  agreements   Agreement[]
+}
+
+///////////////////////
+// ROOM
+///////////////////////
+model Room {
+  id          Int      @id @default(autoincrement())
+  roomNumber  String
+  roomType    RoomEnum
+
+  propertyId  Int
+  property    Property @relation(fields: [propertyId], references: [id])
+
+  agreements  Agreement[]
+}
+
+///////////////////////
+// AGREEMENT
+///////////////////////
+model Agreement {
+  id         Int        @id @default(autoincrement())
+  ownerId    Int
+  propertyId Int
+  roomId     Int
+
+  isActive   Boolean    @default(true)  // ✅ FIX
+  createdAt  DateTime   @default(now())
+
+  owner      User       @relation("UserAgreements", fields: [ownerId], references: [id])
+  property   Property   @relation(fields: [propertyId], references: [id])
+  room       Room       @relation(fields: [roomId], references: [id])
+
+  bills      Bill[]
+}
+
+///////////////////////
+// BILL
+///////////////////////
+model Bill {
+  id          Int        @id @default(autoincrement())
+  agreementId Int
+  amount      Float
+  dueDate     DateTime
+
+  agreement   Agreement  @relation(fields: [agreementId], references: [id])
+  payments    Payment[]
+}
+
+///////////////////////
+// PAYMENT
+///////////////////////
+model Payment {
+  id             Int            @id @default(autoincrement())
+  billId         Int
+  amount         Float
+
+  method         PaymentMethod
+  status         PaymentStatus  @default(PENDING)
+
+  razorpayTxnId  String?        // optional (only for Razorpay)
+
+  createdAt      DateTime       @default(now())
+
+  bill           Bill           @relation(fields: [billId], references: [id])
+}
