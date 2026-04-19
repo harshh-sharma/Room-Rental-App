@@ -1,4 +1,4 @@
-import AppError from "../utils/AppError";
+import AppError from "../utils/AppError.js";
 import jwt from "jsonwebtoken";
 
 export const protect = async (req, res, next) => {

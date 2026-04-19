@@ -1,5 +1,10 @@
+import logger from "../utils/logger.js";
+
 const errorMiddleware = (err, req, res, next) => {
-  console.error(err);
+   logger.error({
+    message: err.message,
+    stack: err.stack,
+  });
 
   let message = err.message || "Internal Server Error";
 

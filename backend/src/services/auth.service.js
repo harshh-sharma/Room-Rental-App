@@ -144,3 +144,4 @@ export const getCurrentUserService = async({
 
   return {user:safeUser};
 }
+

@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cors from "cors";
 import morgan from "morgan";
 import userRouter from "./routes/auth.js";
+import propertyRouter from "./routes/property.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', userRouter);
+app.use('/api/property', propertyRouter);
 app.use(errorMiddleware)
 
 export default app;

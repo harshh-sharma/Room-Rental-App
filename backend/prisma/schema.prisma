@@ -58,6 +58,16 @@ model Property {
   id           Int      @id @default(autoincrement())
   propertyName String
 
+  address      String
+  city         String
+  state        String
+  pincode      String
+
+  latitude     Float?   
+  longitude    Float?   
+
+  isPublic     Boolean  @default(true)
+
   ownerId      Int
   owner        User     @relation(fields: [ownerId], references: [id])
 
