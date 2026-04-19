@@ -1,22 +1,24 @@
-# 🚀 Backend Setup (Initial)
+# 🚀 Room Rental Backend (API)
 
-This README covers the **basic backend setup only** (current stage).
+This is a **production-ready backend** for a Room Rental & Property Management System.
+
+It includes authentication, property management, validation, and clean architecture.
 
 ---
 
-# 📦 Tech Stack (Current)
+# 📦 Tech Stack
 
 * Node.js
-* Express
-* Prisma
+* Express.js
 * PostgreSQL
-* JWT
-* Zod
-* Winston
-* Nodemailer
-* Helmet
+* Prisma ORM
+* JWT Authentication
+* Zod (Validation)
+* Winston (Logging)
+* Nodemailer (Email Service)
+* Helmet (Security)
 * CORS
-* Morgan
+* Morgan (Logging)
 
 ---
 
@@ -26,8 +28,42 @@ This README covers the **basic backend setup only** (current stage).
 project-root/
 │
 ├── src/
+│   ├── config/
+│   │   ├── db.js
+│   │   ├── mailer.js
+│   │
+│   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   ├── property.controller.js
+│   │
+│   ├── services/
+│   │   ├── auth.service.js
+│   │   ├── property.service.js
+│   │
+│   ├── routes/
+│   │   ├── auth.routes.js
+│   │   ├── property.routes.js
+│   │
+│   ├── middlewares/
+│   │   ├── auth.middleware.js
+│   │   ├── role.middleware.js
+│   │   ├── validate.js
+│   │
+│   ├── validators/
+│   │   ├── auth.validate.js
+│   │   ├── property.validate.js
+│   │
+│   ├── utils/
+│   │   ├── AppError.js
+│   │   ├── asyncHandler.js
+│   │   ├── logger.js
+│   │   ├── sendMail.js
+│   │
 │   ├── app.js
 │   ├── server.js
+│
+├── prisma/
+│   ├── schema.prisma
 │
 ├── .env
 ├── package.json
@@ -37,26 +73,25 @@ project-root/
 
 # ⚙️ Environment Variables
 
-Create a `.env` file in root:
+Create a `.env` file:
 
 ```
 PORT=5000
-DATABASE_URL=your_database_url
+DATABASE_URL=your_postgres_url
+
 JWT_SECRET=your_secret
+JWT_EXPIRY=5h
+
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
 ```
 
 ---
 
-# 📦 Install Dependencies
+# 📦 Installation
 
 ```bash
-npm install express cors dotenv bcrypt jsonwebtoken zod prisma @prisma/client winston nodemailer helmet express-rate-limit morgan express-async-handler
-```
-
-### Dev Dependency
-
-```bash
-npm install -D nodemon
+npm install
 ```
 
 ---
@@ -77,53 +112,123 @@ npm start
 
 ---
 
-# 🧱 Basic Server Setup
+# 🧠 Features Implemented
 
-## src/server.js
+## 🔐 Authentication
 
-```js
-import dotenv from "dotenv";
-dotenv.config();
+* User Registration
+* Email Verification (with expiry)
+* Login with JWT
+* Protected Routes
+* Role-based Authorization (OWNER, RENTER, ADMIN)
 
-import app from "./app.js";
+---
 
-const PORT = process.env.PORT || 5000;
+## 🏠 Property Module
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+### Owner APIs
+
+* Create Property
+* Get My Properties
+* Update Property
+* Delete Property
+
+### Public APIs
+
+* Get Public Properties
+* Filter (city, state, search)
+* Pagination support
+* Get Single Property (public + private logic)
+
+---
+
+## ✅ Validation
+
+* Zod-based request validation
+* Centralized validation middleware
+
+---
+
+## 🛡️ Security
+
+* Helmet (HTTP security)
+* JWT authentication
+* Role-based access control
+
+---
+
+## 📧 Email System
+
+* Email verification via Nodemailer
+* Token-based verification with expiry
+
+---
+
+## 📊 Logging
+
+* Winston logger
+* Console + file logging
+
+---
+
+# 🔗 API Endpoints
+
+## Auth
+
+```
+POST   /api/auth/register
+GET    /api/auth/verify-email
+POST   /api/auth/login
+GET    /api/auth/profile
 ```
 
 ---
 
-## src/app.js
+## Property
 
-```js
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import morgan from "morgan";
-
-const app = express();
-
-app.use(express.json());
-app.use(cors());
-app.use(helmet());
-app.use(morgan("dev"));
-
-app.get("/", (req, res) => {
-  res.send("API Running 🚀");
-});
-
-export default app;
+```
+POST   /api/properties           (Create)
+GET    /api/properties/my        (Owner properties)
+GET    /api/properties/public    (Public properties)
+GET    /api/properties/:id       (Single property)
+PUT    /api/properties/:id       (Update)
+DELETE /api/properties/:id       (Delete)
 ```
 
 ---
 
-# 🧠 Notes
+# 🧠 Architecture
 
-* `dotenv.config()` is used only in `server.js`
-* `app.js` contains only Express setup
-* This is the base setup before adding Prisma, Auth, etc.
+```text
+Controller → Service → Prisma → Database
+```
+
+* Controllers → handle request/response
+* Services → business logic
+* Prisma → DB interaction
 
 ---
+
+# ⚡ Notes
+
+* `asyncHandler` used for error handling
+* `AppError` for custom errors
+* Clean separation of concerns
+* Scalable structure for future modules (Rooms, Billing, etc.)
+
+---
+
+# 🚀 Upcoming Features
+
+* Room Management
+* Rent & Billing System
+* Payment Integration (Razorpay)
+* Notifications
+* Analytics Dashboard
+
+---
+
+# 👨‍💻 Author
+
+Harsh Sharma
+MERN Stack Developer
