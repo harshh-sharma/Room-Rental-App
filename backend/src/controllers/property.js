@@ -1,5 +1,5 @@
-import { createPropertyService, deletePropertyService, getAllPropertiesService, getPublicPropertiesService, getSinglePropertyService, updatePropertyService } from "../services/property.service";
-import asyncHandler from "../utils/asyncHandler";
+import { createPropertyService, deletePropertyService, getAllPropertiesService, getPublicPropertiesService, getSinglePropertyService, updatePropertyService } from "../services/property.service.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
 export const createProperty = asyncHandler(async(req, res) => {
     const {id} = req.user;
