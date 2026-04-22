@@ -82,11 +82,14 @@ model Room {
   id          Int      @id @default(autoincrement())
   roomNumber  String
   roomType    RoomEnum
+  capacity    Int
 
   propertyId  Int
   property    Property @relation(fields: [propertyId], references: [id])
 
   agreements  Agreement[]
+
+   @@unique([propertyId, roomNumber])
 }
 
 ///////////////////////
