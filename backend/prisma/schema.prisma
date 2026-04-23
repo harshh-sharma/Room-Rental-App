@@ -33,6 +33,13 @@ enum UserRole {
   ADMIN
 }
 
+enum EndRequestStatus {
+  NONE
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 ///////////////////////
 // USER
 ///////////////////////
@@ -40,15 +47,18 @@ model User {
   id         Int        @id @default(autoincrement())
   name       String
   email      String     @unique
-  password String
+  password   String
+
   isEmailVerified Boolean @default(false)
   emailVerifyToken String?
   emailVerifyExpiry DateTime?
 
-  role       UserRole   @default(RENTER) 
+  role       UserRole   @default(RENTER)
 
   properties Property[]
-  agreements Agreement[] @relation("UserAgreements")
+
+  ownerAgreements   Agreement[] @relation("OwnerAgreements")
+  renterAgreements  Agreement[] @relation("RenterAgreements")
 }
 
 ///////////////////////
@@ -96,19 +106,36 @@ model Room {
 // AGREEMENT
 ///////////////////////
 model Agreement {
-  id         Int        @id @default(autoincrement())
-  ownerId    Int
-  propertyId Int
-  roomId     Int
+  id            Int      @id @default(autoincrement())
 
-  isActive   Boolean    @default(true)  // ✅ FIX
-  createdAt  DateTime   @default(now())
+  ownerId       Int
+  renterId      Int   
 
-  owner      User       @relation("UserAgreements", fields: [ownerId], references: [id])
-  property   Property   @relation(fields: [propertyId], references: [id])
-  room       Room       @relation(fields: [roomId], references: [id])
+  propertyId    Int
+  roomId        Int
 
-  bills      Bill[]
+  rent          Float
+  deposit       Float?
+
+  startDate     DateTime
+  endDate       DateTime?
+
+  isActive      Boolean  @default(true)
+
+  endRequestStatus EndRequestStatus @default(NONE)
+  endRequestDate   DateTime?
+
+  createdAt     DateTime @default(now())
+
+  owner         User     @relation("OwnerAgreements", fields: [ownerId], references: [id])
+  renter        User     @relation("RenterAgreements", fields: [renterId], references: [id])
+
+  property      Property @relation(fields: [propertyId], references: [id])
+  room          Room     @relation(fields: [roomId], references: [id])
+
+  bills         Bill[]
+
+   @@index([roomId, isActive])
 }
 
 ///////////////////////
