@@ -23,6 +23,11 @@ export const createAgreementSchema = z.object({
       .string()
       .refine((date) => !isNaN(Date.parse(date)), "Invalid start date"),
 
+    dueDay: z
+      .number(),
+
+    electricityRate: electricityRate ? z.number() : 0,
+
     endDate: z
       .string()
       .optional()
@@ -31,7 +36,7 @@ export const createAgreementSchema = z.object({
         "Invalid end date"
       ),
   })
-  // 🔥 ADVANCED VALIDATION (important)
+  // ADVANCED VALIDATION (important)
   .refine((data) => {
     const { startDate, endDate } = data.body;
 

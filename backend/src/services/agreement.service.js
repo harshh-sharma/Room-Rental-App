@@ -10,6 +10,10 @@ export const createAgreementService = async ({
   startDate,
   endDate,
   deposit = 0,
+
+  electricityRate,
+  dueDay,
+  fixedCharges,
 }) => {
 
   const room = await prisma.room.findUnique({
@@ -71,6 +75,27 @@ export const createAgreementService = async ({
     throw new AppError("Rent must be greater than 0", 400);
   }
 
+ if (electricityRate !== undefined && electricityRate < 0) {
+  throw new AppError("Electricity rate cannot be negative", 400);
+}
+
+if (fixedCharges && typeof fixedCharges !== "object") {
+  throw new AppError("fixedCharges must be an object", 400);
+}
+
+
+if (fixedCharges) {
+  for (const key in fixedCharges) {
+    if (typeof fixedCharges[key] !== "number") {
+      throw new AppError("All fixed charges must be numbers", 400);
+    }
+  }
+}
+
+  if (!dueDay || dueDay < 1 || dueDay > 28) {
+  throw new AppError("Due day must be between 1–28 (safe for all months)", 400);
+}
+
   const start = new Date(startDate);
 
   if (start < new Date()) {
@@ -95,6 +120,9 @@ export const createAgreementService = async ({
       startDate: new Date(startDate),
       endDate: endDate ? new Date(endDate) : null,
       deposit,
+      dueDay,
+      electricityRate,
+      fixedCharges,
       isActive: true,
     },
   });

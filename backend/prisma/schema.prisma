@@ -40,6 +40,18 @@ enum EndRequestStatus {
   REJECTED
 }
 
+enum BillStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum ReadingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 ///////////////////////
 // USER
 ///////////////////////
@@ -117,6 +129,11 @@ model Agreement {
   rent          Float
   deposit       Float?
 
+  electricityRate Float?      // ₹ per unit
+  dueDay          Int         // e.g. 5
+
+  fixedCharges   Json?        // dynamic key-value
+
   startDate     DateTime
   endDate       DateTime?
 
@@ -135,20 +152,64 @@ model Agreement {
 
   bills         Bill[]
 
-   @@index([roomId, isActive])
+  @@index([roomId, isActive])
 }
 
 ///////////////////////
 // BILL
 ///////////////////////
 model Bill {
-  id          Int        @id @default(autoincrement())
-  agreementId Int
-  amount      Float
-  dueDate     DateTime
+  id          Int      @id @default(autoincrement())
 
-  agreement   Agreement  @relation(fields: [agreementId], references: [id])
+  agreementId Int
+
+  billMonth   Int
+  billYear    Int
+
+  rentAmount        Float
+  electricityRate   Float?     
+  electricityUnits  Float?     
+  electricityAmount Float?
+
+  fixedCharges      Json?      
+  extraCharges      Json?   
+
+  totalAmount Float
+
+  dueDate     DateTime
+  status      BillStatus @default(PENDING)
+
+  calculationType String // "ACTUAL" | "AUTO_APPROVED" | "ESTIMATED"
+
+  createdAt   DateTime @default(now())
+
+  agreement   Agreement @relation(fields: [agreementId], references: [id])
   payments    Payment[]
+
+  @@unique([agreementId, billMonth, billYear])
+}
+
+
+
+///////////////////////
+// Meter Reading
+///////////////////////
+model MeterReading {
+  id           Int      @id @default(autoincrement())
+
+  agreementId  Int
+  units        Float
+  imageUrl     String?
+
+  status       ReadingStatus @default(PENDING)
+  rejectionReason String?
+  usedInBill   Boolean @default(false)
+
+  createdAt    DateTime @default(now())
+
+  agreement    Agreement @relation(fields: [agreementId], references: [id])
+
+  @@index([agreementId, status])
 }
 
 ///////////////////////

@@ -19,6 +19,10 @@ export const createAgreement = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     deposit,
+
+    electricityRate,
+    dueDay,
+    fixedCharges,
   } = req.body;
 
   const agreement = await createAgreementService({
@@ -30,6 +34,9 @@ export const createAgreement = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     deposit,
+    electricityRate: Number(electricityRate),
+    dueDay: Number(dueDay),
+    fixedCharges: JSON.parse(fixedCharges),
   });
 
   return res.status(201).json({
