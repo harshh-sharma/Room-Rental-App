@@ -96,7 +96,8 @@ if (fixedCharges) {
   throw new AppError("Due day must be between 1–28 (safe for all months)", 400);
 }
 
-  const start = new Date(startDate);
+  const startMonth = start.getMonth() + 1;
+const startYear = start.getFullYear();
 
   if (start < new Date()) {
     throw new AppError("Start date cannot be in the past", 400);
@@ -123,8 +124,11 @@ if (fixedCharges) {
       dueDay,
       electricityRate,
       fixedCharges,
+      lastPaidMonth: startMonth,
+      lastPaidYear: startYear,
       isActive: true,
     },
+
   });
 
   return agreement;

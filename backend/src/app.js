@@ -7,6 +7,7 @@ import userRouter from "./routes/auth.js";
 import propertyRouter from "./routes/property.js";
 import roomRouter from "./routes/room.js";
 import agreementRouter from "./routes/agreement.js";
+import billRouter from "./routes/bill.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 
 import swaggerUi from "swagger-ui-express";
@@ -29,6 +30,7 @@ app.use('/api/auth', userRouter);
 app.use('/api/properties', propertyRouter);
 app.use('/api/rooms', roomRouter);
 app.use('/api/agreements', agreementRouter);
+app.use('/api/bills', billRouter);
 app.use(errorMiddleware)
 
 export default app;

@@ -1,3 +1,6 @@
+import prisma from "../config/db";
+import AppError from "../utils/AppError";
+
 export const generateBillService = async ({
   agreementId,
   units,
@@ -60,7 +63,6 @@ export const generateBillService = async ({
     fixedTotal +
     extraTotal;
 
-  // ✅ safe due date
   const daysInMonth = new Date(billYear, billMonth, 0).getDate();
   const safeDueDay = Math.min(agreement.dueDay, daysInMonth);
 
@@ -86,6 +88,84 @@ export const generateBillService = async ({
       calculationType
     }
   });
+
+  return bill;
+};
+
+export const getAllBillsService = async ({ userId }) => {
+
+  const bills = await prisma.bill.findMany({
+    where: {
+      OR: [
+        {
+          agreement: {
+            renterId: userId
+          }
+        },
+        {
+          agreement: {
+            ownerId: userId
+          }
+        }
+      ]
+    },
+    include: {
+      agreement: {
+        select: {
+          id: true,
+          rent: true,
+          dueDay: true,
+          renter: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          room: {
+            select: {
+              id: true,
+              roomNumber: true
+            }
+          },
+          property: {
+            select: {
+              id: true,
+              propertyName: true
+            }
+          }
+        }
+      }
+    },
+    orderBy: {
+      createdAt: "desc"
+    }
+  });
+
+  return bills;
+};
+
+export const getSingleBillService = async ({
+  billId,
+  userId
+}) => {
+
+  const bill = await prisma.bill.findUnique({
+    where: { id: billId },
+    include: {
+      agreement: true
+    }
+  });
+
+  if (!bill) {
+    throw new AppError("Bill not found", 404);
+  }
+
+  if (
+    bill.agreement.ownerId !== userId &&
+    bill.agreement.renterId !== userId
+  ) {
+    throw new AppError("Not authorized", 403);
+  }
 
   return bill;
 };

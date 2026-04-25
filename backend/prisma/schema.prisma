@@ -134,6 +134,9 @@ model Agreement {
 
   fixedCharges   Json?        // dynamic key-value
 
+  lastPaidMonth Int?
+lastPaidYear  Int?
+
   startDate     DateTime
   endDate       DateTime?
 
@@ -151,6 +154,7 @@ model Agreement {
   room          Room     @relation(fields: [roomId], references: [id])
 
   bills         Bill[]
+  meterReadings MeterReading[]
 
   @@index([roomId, isActive])
 }
