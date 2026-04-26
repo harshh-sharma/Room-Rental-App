@@ -199,21 +199,22 @@ model Bill {
 // Meter Reading
 ///////////////////////
 model MeterReading {
-  id           Int      @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
+  agreementId   Int
 
-  agreementId  Int
-  units        Float
-  imageUrl     String?
+  units         Float
+  imageUrl      String?
 
-  status       ReadingStatus @default(PENDING)
-  rejectionReason String?
-  usedInBill   Boolean @default(false)
+  status        ReadingStatus @default(PENDING)
+  rejectionNote String?
 
-  createdAt    DateTime @default(now())
+  usedInBill    Boolean  @default(false)
 
-  agreement    Agreement @relation(fields: [agreementId], references: [id])
+  createdAt     DateTime @default(now())
 
-  @@index([agreementId, status])
+  agreement     Agreement @relation(fields: [agreementId], references: [id])
+
+  @@index([agreementId, createdAt])
 }
 
 ///////////////////////
