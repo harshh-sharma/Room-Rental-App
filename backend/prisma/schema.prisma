@@ -24,6 +24,7 @@ enum PaymentMethod {
 enum PaymentStatus {
   PENDING
   SUCCESS
+  REJECTED
   FAILED
 }
 
@@ -227,8 +228,12 @@ model Payment {
 
   method         PaymentMethod
   status         PaymentStatus  @default(PENDING)
+  rejectionNote String?
 
-  razorpayTxnId  String?        // optional (only for Razorpay)
+  proofUrl       String?        // manual payment screenshot
+
+  razorpayOrderId String?
+  razorpayTxnId   String?
 
   createdAt      DateTime       @default(now())
 
