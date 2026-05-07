@@ -1,0 +1,105 @@
+// controllers/payment.controller.js
+
+import asyncHandler from "../utils/asyncHandler.js";
+
+import {
+  manualPaymentService,
+  manualBillApproval,
+  ownerMarkManually,
+  retryPayment,
+  getPaymentsByBillService
+} from "../services/payment.service.js";
+
+
+// ===============================
+// RENTER SUBMIT MANUAL PAYMENT
+// ===============================
+export const submitManualPayment = asyncHandler(async (req, res) => {
+
+  const payment = await manualPaymentService({
+    billId: Number(req.params.billId),
+    userId: req.user.id,
+    amount: Number(req.body.amount),
+    proofUrl: req.body.proofUrl
+  });
+
+  return res.status(201).json({
+    success: true,
+    message: "Payment submitted successfully",
+    data: payment
+  });
+});
+
+
+// ===============================
+// OWNER APPROVE / REJECT PAYMENT
+// ===============================
+export const updateManualPaymentStatus = asyncHandler(async (req, res) => {
+
+  const payment = await manualBillApproval({
+    ownerId: req.user.id,
+    paymentId: Number(req.params.paymentId),
+    status: req.body.status,
+    rejectionNote: req.body.rejectionNote
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: `Payment ${req.body.status.toLowerCase()} successfully`,
+    data: payment
+  });
+});
+
+
+// ===============================
+// OWNER MARK BILL MANUALLY
+// ===============================
+export const markBillPaidByOwner = asyncHandler(async (req, res) => {
+
+  const payment = await ownerMarkManually({
+    ownerId: req.user.id,
+    paymentId: Number(req.params.paymentId)
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Bill marked paid successfully",
+    data: payment
+  });
+});
+
+
+// ===============================
+// RENTER RETRY PAYMENT
+// ===============================
+export const retryManualPayment = asyncHandler(async (req, res) => {
+
+  const payment = await retryPayment({
+    renterId: req.user.id,
+    billId: Number(req.params.billId),
+    proofUrl: req.body.proofUrl
+  });
+
+  return res.status(201).json({
+    success: true,
+    message: "Payment retried successfully",
+    data: payment
+  });
+});
+
+
+// ===============================
+// GET BILL PAYMENTS
+// ===============================
+export const getBillPayments = asyncHandler(async (req, res) => {
+
+  const payments = await getPaymentsByBillService({
+    billId: Number(req.params.billId),
+    userId: req.user.id
+  });
+
+  return res.status(200).json({
+    success: true,
+    data: payments
+  });
+});

@@ -234,3 +234,34 @@ export const getAllPaymentsRelatedToBill = async ({
 
     return bill.payments || [];
 }
+
+
+export const getPaymentsByBillService = async({
+  billId,
+  userId
+}) => {
+  const bill = await prisma.bill.findUnique({
+    where:{id:billId},
+    include:{
+      agreement: true,
+      payments: true
+    }
+  });
+
+  if(!bill){
+    throw new AppError("Bill Not found", 404);
+  }
+
+  if (bill.payments.length === 0){
+    throw new AppError("Bill have not payments", 400);
+  }
+
+  if (
+  bill.agreement.renterId !== userId &&
+  bill.agreement.ownerId !== userId
+) {
+  throw new AppError("Not authorized", 403);
+}
+
+  return bill.payments || [];
+}
