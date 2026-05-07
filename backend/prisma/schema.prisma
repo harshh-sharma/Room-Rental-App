@@ -53,6 +53,11 @@ enum ReadingStatus {
   REJECTED
 }
 
+enum PaymentMode {
+  TEST
+  LIVE
+}
+
 ///////////////////////
 // USER
 ///////////////////////
@@ -72,6 +77,8 @@ model User {
 
   ownerAgreements   Agreement[] @relation("OwnerAgreements")
   renterAgreements  Agreement[] @relation("RenterAgreements")
+
+   paymentConfig PaymentConfig?
 }
 
 ///////////////////////
@@ -238,4 +245,23 @@ model Payment {
   createdAt      DateTime       @default(now())
 
   bill           Bill           @relation(fields: [billId], references: [id])
+}
+
+
+model PaymentConfig {
+  id        Int @id @default(autoincrement())
+
+  ownerId   Int @unique
+
+  razorpayEnabled Boolean @default(false)
+
+  mode PaymentMode @default(TEST)
+
+  testKeyId       String?
+  testKeySecret   String?
+
+  liveKeyId       String?
+  liveKeySecret   String?
+
+  owner User @relation(fields: [ownerId], references: [id])
 }
