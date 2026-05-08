@@ -9,6 +9,8 @@ import roomRouter from "./routes/room.js";
 import agreementRouter from "./routes/agreement.js";
 import billRouter from "./routes/bill.js";
 import renterRouter from "./routes/reading.js"
+import paymentConfigRouter from "./routes/paymentConfig.routes.js"
+import paymentRouter from "./routes/payment.routes.js"
 import errorMiddleware from "./middlewares/error.middleware.js";
 
 import swaggerUi from "swagger-ui-express";
@@ -33,6 +35,11 @@ app.use('/api/rooms', roomRouter);
 app.use('/api/agreements', agreementRouter);
 app.use('/api/bills', billRouter);
 app.use('/api/renter', renterRouter);
+app.use('/api/payment-config', paymentConfigRouter);
+app.use('/api/payment', paymentRouter);
+
+
+
 app.use(errorMiddleware)
 
 export default app;

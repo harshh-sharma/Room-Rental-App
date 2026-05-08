@@ -7,8 +7,12 @@ import {
   manualBillApproval,
   ownerMarkManually,
   retryPayment,
-  getPaymentsByBillService
+  getPaymentsByBillService,
+  createRazorPayOrderService,
+  verifyRazorpayPaymentService
 } from "../services/payment.service.js";
+import prisma from "../config/db.js";
+import AppError from "../utils/AppError.js";
 
 
 // ===============================
@@ -103,3 +107,34 @@ export const getBillPayments = asyncHandler(async (req, res) => {
     data: payments
   });
 });
+
+// ===============================
+// Create Razorpay Order
+// ===============================
+
+export const createRazorPayOrder = asyncHandler(async(req, res) => {
+  const {id} = req.user;
+  const {billId} = req.body;
+
+  const order = await createRazorPayOrderService({renterId:id, billId});
+
+  return res.status(200).json({
+    success: true,
+    message:"Successfully order created",
+    data: order
+  })
+})
+
+// ===============================
+// Verify Razorpay Payment
+// ===============================
+export const verifyRazorpayPayment = asyncHandler(async(req, res) => {
+  const {razorpay_order_id,razorpay_payment_id,razorpay_signature} = req.body;
+
+  const payment = await verifyRazorpayPaymentService({razorpay_order_id, razorpay_payment_id, razorpay_signature});
+  return res.status(200).json({
+    success:true,
+    message:"Successfully verified razorpay payment",
+    data: payment
+  })
+})

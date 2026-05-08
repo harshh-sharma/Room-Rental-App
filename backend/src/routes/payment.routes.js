@@ -10,7 +10,9 @@ import {
   updateManualPaymentStatus,
   retryManualPayment,
   markBillPaidByOwner,
-  getBillPayments
+  getBillPayments,
+  createRazorPayOrder,
+  verifyRazorpayPayment
 } from "../controllers/payment.controller.js";
 
 import {
@@ -19,6 +21,7 @@ import {
   retryPaymentSchema,
   getPaymentsSchema
 } from "../validations/payment.validation.js";
+import { createRazorypayOrderSchema, verifyRazorpayOrderSchema } from "../validators/payment.validation.js";
 
 const router = express.Router();
 
@@ -65,5 +68,11 @@ router.get(
   validate(getPaymentsSchema),
   getBillPayments
 );
+
+// create razor pay order
+router.post('/bill/:billId', protect,validate(createRazorypayOrderSchema), createRazorPayOrder);
+
+// verify razorpay payment
+router.post("/bill/verify", protect,validate(verifyRazorpayOrderSchema), verifyRazorpayPayment);
 
 export default router;

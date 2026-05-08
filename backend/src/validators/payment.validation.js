@@ -75,3 +75,23 @@ export const getPaymentsSchema = z.object({
     billId: z.string().regex(/^\d+$/, "Bill ID must be number")
   })
 });
+
+// ===============================
+// CREATE RAZORPAY ORDER
+// ===============================
+export const createRazorypayOrderSchema = z.object({
+  params: z.object({
+    billId: z.string().regex(/^\d+$/, "Bill ID must be number")
+  })
+})
+
+// ===============================
+// VERIFY RAZORPAY PAYMENT
+// ===============================
+export const verifyRazorpayOrderSchema = z.object({
+  body: z.object({
+    razorpay_order_id: z.string(),
+    razorpay_payment_id: z.string(),
+    razorpay_signature: z.string()
+  })
+})

@@ -1,114 +1,119 @@
-import prisma from "../config/db"
+import prisma from "../config/db";
 import AppError from "../utils/AppError";
+import { createRazorpayInstance } from "../utils/razorPay";
+import crypto from "crypto";
 
 export const manualPaymentService = async ({
-    billId,
-    userId,
-    amount,
-    proofUrl
+  billId,
+  userId,
+  amount,
+  proofUrl,
 }) => {
-    const bill = await prisma.bill.findUnique({
-        where:{id:billId},
-        include:{
-            agreement: true
-        }
-    });
+  const bill = await prisma.bill.findUnique({
+    where: { id: billId },
+    include: {
+      agreement: true,
+    },
+  });
 
-    if(!bill){
-        throw new AppError("Bill not found", 404);
-    }
-
-    if(userId !== bill.agreement.renterId){
-        throw new AppError("You are not authorize", 403);
-    }
-
-    if(bill.status == "PAID"){
-        throw new AppError("Bill already paid", 400);
-    }
-
-    const payment = await prisma.payment.create({
-        data:{
-            billId,
-            amount,
-            method: "MANUAL",
-            status:"PENDING",
-            proofUrl
-        }
-    });
-
-    return payment;
-}
-
-export const manualBillApproval = async ({ownerId, paymentId, status, rejectionNote = ""}) => {
-    const payment = await prisma.payment.findUnique({
-        where:{id:paymentId},
-     include: {
-        bill: {
-            include: {
-            agreement: true
-            }
+  if (!bill) {
+    throw new AppError("Bill not found", 404);
   }
-}
-    });
 
-    if(!payment){
-        throw new AppError("Payment not found", 404);
-    }
+  if (userId !== bill.agreement.renterId) {
+    throw new AppError("You are not authorize", 403);
+  }
 
-    if(payment.bill.agreement.ownerId !== ownerId){
-        throw new AppError("you are not authorize", 403);
-    }
+  if (bill.status == "PAID") {
+    throw new AppError("Bill already paid", 400);
+  }
 
-    if (payment.status !== "PENDING") {
-  throw new AppError("Payment already processed", 400);
-}
+  const payment = await prisma.payment.create({
+    data: {
+      billId,
+      amount,
+      method: "MANUAL",
+      status: "PENDING",
+      proofUrl,
+    },
+  });
 
-if (!["SUCCESS", "REJECTED"].includes(status)) {
-  throw new AppError("Invalid status", 400);
-}
+  return payment;
+};
 
-    if(status == "REJECTED" && rejectionNote == ""){
-        throw new AppError("Rejection Note is required", 400);
-    }
+export const manualBillApproval = async ({
+  ownerId,
+  paymentId,
+  status,
+  rejectionNote = "",
+}) => {
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: {
+      bill: {
+        include: {
+          agreement: true,
+        },
+      },
+    },
+  });
 
-    const updatepaymentStatus = await prisma.payment.update({
-        where:{id:paymentId},
-        data:{
-            status,
-            rejectionNote : status === "REJECTED" ? rejectionNote : null
-        }
-    })
+  if (!payment) {
+    throw new AppError("Payment not found", 404);
+  }
+
+  if (payment.bill.agreement.ownerId !== ownerId) {
+    throw new AppError("you are not authorize", 403);
+  }
+
+  if (payment.status !== "PENDING") {
+    throw new AppError("Payment already processed", 400);
+  }
+
+  if (!["SUCCESS", "REJECTED"].includes(status)) {
+    throw new AppError("Invalid status", 400);
+  }
+
+  if (status == "REJECTED" && rejectionNote == "") {
+    throw new AppError("Rejection Note is required", 400);
+  }
+
+  const updatepaymentStatus = await prisma.payment.update({
+    where: { id: paymentId },
+    data: {
+      status,
+      rejectionNote: status === "REJECTED" ? rejectionNote : null,
+    },
+  });
 
   if (status === "SUCCESS") {
     await prisma.bill.update({
       where: { id: payment.billId },
-      data: { status: "PAID" }
+      data: { status: "PAID" },
     });
 
     await prisma.agreement.update({
       where: { id: payment.bill.agreement.id },
       data: {
         lastPaidMonth: payment.bill.billMonth,
-        lastPaidYear: payment.bill.billYear
-      }
+        lastPaidYear: payment.bill.billYear,
+      },
     });
   }
 
   return updatepaymentStatus;
-}
-
+};
 
 export const ownerMarkManually = async ({ ownerId, paymentId }) => {
-
   const existingPayment = await prisma.payment.findUnique({
     where: { id: paymentId },
     include: {
       bill: {
         include: {
-          agreement: true
-        }
-      }
-    }
+          agreement: true,
+        },
+      },
+    },
   });
 
   if (!existingPayment) {
@@ -132,37 +137,32 @@ export const ownerMarkManually = async ({ ownerId, paymentId }) => {
       method: "MANUAL",
       status: "SUCCESS",
       rejectionNote: "Marked paid by owner manually",
-      proofUrl: null
-    }
+      proofUrl: null,
+    },
   });
 
   await prisma.bill.update({
     where: { id: bill.id },
-    data: { status: "PAID" }
+    data: { status: "PAID" },
   });
 
   await prisma.agreement.update({
     where: { id: bill.agreement.id },
     data: {
       lastPaidMonth: bill.billMonth,
-      lastPaidYear: bill.billYear
-    }
+      lastPaidYear: bill.billYear,
+    },
   });
 
   return newPayment;
 };
 
-export const retryPayment = async ({
-  renterId,
-  billId,
-  proofUrl
-}) => {
-
+export const retryPayment = async ({ renterId, billId, proofUrl }) => {
   const bill = await prisma.bill.findUnique({
     where: { id: billId },
     include: {
-      agreement: true
-    }
+      agreement: true,
+    },
   });
 
   if (!bill) {
@@ -180,8 +180,8 @@ export const retryPayment = async ({
   const successPayment = await prisma.payment.findFirst({
     where: {
       billId,
-      status: "SUCCESS"
-    }
+      status: "SUCCESS",
+    },
   });
 
   if (successPayment) {
@@ -191,8 +191,8 @@ export const retryPayment = async ({
   const pendingPayment = await prisma.payment.findFirst({
     where: {
       billId,
-      status: "PENDING"
-    }
+      status: "PENDING",
+    },
   });
 
   if (pendingPayment) {
@@ -205,63 +205,352 @@ export const retryPayment = async ({
       amount: bill.totalAmount,
       status: "PENDING",
       proofUrl: proofUrl || null,
-      method: "MANUAL"
-    }
+      method: "MANUAL",
+    },
   });
 
   return payment;
 };
 
-export const getAllPaymentsRelatedToBill = async ({
-    billId,
-    userId
-}) => {
-    const bill = await prisma.bill.findUnique({
-        where:{id:billId},
-        include:{
-            payments: true,
-            agreement: true
-        }
-    });
-
-    if(!bill){
-        throw new AppError("Bill not found", 404);
-    }
-
-    if(!bill.agreement.renterId || !bill.agreement.ownerId){
-        throw new AppError("you are not authorize", 403);
-    }
-
-    return bill.payments || [];
-}
-
-
-export const getPaymentsByBillService = async({
-  billId,
-  userId
-}) => {
+export const getAllPaymentsRelatedToBill = async ({ billId, userId }) => {
   const bill = await prisma.bill.findUnique({
-    where:{id:billId},
-    include:{
+    where: { id: billId },
+    include: {
+      payments: true,
       agreement: true,
-      payments: true
-    }
+    },
   });
 
-  if(!bill){
+  if (!bill) {
+    throw new AppError("Bill not found", 404);
+  }
+
+  if (!bill.agreement.renterId || !bill.agreement.ownerId) {
+    throw new AppError("you are not authorize", 403);
+  }
+
+  return bill.payments || [];
+};
+
+export const getPaymentsByBillService = async ({ billId, userId }) => {
+  const bill = await prisma.bill.findUnique({
+    where: { id: billId },
+    include: {
+      agreement: true,
+      payments: true,
+    },
+  });
+
+  if (!bill) {
     throw new AppError("Bill Not found", 404);
   }
 
-  if (bill.payments.length === 0){
+  if (bill.payments.length === 0) {
     throw new AppError("Bill have not payments", 400);
   }
 
-  if (
-  bill.agreement.renterId !== userId &&
-  bill.agreement.ownerId !== userId
-) {
-  throw new AppError("Not authorized", 403);
-}
+  if (bill.agreement.renterId !== userId && bill.agreement.ownerId !== userId) {
+    throw new AppError("Not authorized", 403);
+  }
 
   return bill.payments || [];
-}
+};
+
+export const createRazorPayOrderService = async ({
+  billId,
+  renterId
+}) => {
+
+  const bill = await prisma.bill.findUnique({
+    where: { id: billId },
+
+    include: {
+      agreement: true
+    }
+  });
+
+  if (!bill) {
+    throw new AppError(
+      "Bill not found",
+      404
+    );
+  }
+
+  if (bill.status === "PAID") {
+    throw new AppError(
+      "Bill already paid",
+      400
+    );
+  }
+
+  if (
+    bill.agreement.renterId !== renterId
+  ) {
+    throw new AppError(
+      "Not authorized",
+      403
+    );
+  }
+
+  const paymentConfig =
+    await prisma.paymentConfig.findUnique({
+
+      where: {
+        ownerId:
+          bill.agreement.ownerId
+      }
+    });
+
+  if (!paymentConfig) {
+    throw new AppError(
+      "Payment configuration not configured",
+      400
+    );
+  }
+
+  if (
+    !paymentConfig.razorpayEnabled
+  ) {
+    throw new AppError(
+      "Razorpay not enabled",
+      400
+    );
+  }
+
+  let keyId;
+  let keySecret;
+
+  if (paymentConfig.mode === "TEST") {
+
+    keyId =
+      paymentConfig.testKeyId;
+
+    keySecret =
+      paymentConfig.testKeySecret;
+
+  } else {
+
+    keyId =
+      paymentConfig.liveKeyId;
+
+    keySecret =
+      paymentConfig.liveKeySecret;
+  }
+
+  if (!keyId || !keySecret) {
+    throw new AppError(
+      "Razorpay keys missing",
+      400
+    );
+  }
+
+  const razorpay =
+    createRazorpayInstance({
+      keyId,
+      keySecret
+    });
+
+  const order =
+    await razorpay.orders.create({
+
+      amount:
+        Math.round(
+          bill.totalAmount * 100
+        ),
+
+      currency: "INR",
+
+      receipt:
+        `bill_${bill.id}_${Date.now()}`
+    });
+
+  const payment =
+    await prisma.payment.create({
+
+      data: {
+        billId: bill.id,
+
+        amount: bill.totalAmount,
+
+        method: "RAZORPAY",
+
+        status: "PENDING",
+
+        razorpayOrderId: order.id
+      }
+    });
+
+  return {
+    orderId: order.id,
+
+    amount: order.amount,
+
+    currency: order.currency,
+
+    key: keyId,
+
+    paymentId: payment.id
+  };
+};
+
+
+
+
+// services/razorpay.service.js
+
+
+
+export const verifyRazorpayPaymentService =
+async ({
+  razorpay_order_id,
+  razorpay_payment_id,
+  razorpay_signature
+}) => {
+
+  // find payment using order id
+  const payment =
+    await prisma.payment.findFirst({
+
+      where: {
+        razorpayOrderId:
+          razorpay_order_id
+      },
+
+      include: {
+        bill: {
+          include: {
+            agreement: true
+          }
+        }
+      }
+    });
+
+  if (!payment) {
+    throw new AppError(
+      "Payment not found",
+      404
+    );
+  }
+
+  // prevent duplicate verification
+  if (payment.status === "SUCCESS") {
+    throw new AppError(
+      "Payment already verified",
+      400
+    );
+  }
+
+  // get owner payment config
+  const paymentConfig =
+    await prisma.paymentConfig.findUnique({
+
+      where: {
+        ownerId:
+          payment.bill.agreement.ownerId
+      }
+    });
+
+  if (!paymentConfig) {
+    throw new AppError(
+      "Payment config not found",
+      404
+    );
+  }
+
+  //  get correct secret
+  let keySecret;
+
+  if (paymentConfig.mode === "TEST") {
+
+    keySecret =
+      paymentConfig.testKeySecret;
+
+  } else {
+
+    keySecret =
+      paymentConfig.liveKeySecret;
+  }
+
+  //  generate signature
+  const generatedSignature =
+    crypto
+      .createHmac(
+        "sha256",
+        keySecret
+      )
+      .update(
+        razorpay_order_id +
+        "|" +
+        razorpay_payment_id
+      )
+      .digest("hex");
+
+  //  compare signature
+  if (
+    generatedSignature !==
+    razorpay_signature
+  ) {
+
+    await prisma.payment.update({
+      where: {
+        id: payment.id
+      },
+
+      data: {
+        status: "FAILED"
+      }
+    });
+
+    throw new AppError(
+      "Invalid payment signature",
+      400
+    );
+  }
+
+  // mark payment success
+  const updatedPayment =
+    await prisma.payment.update({
+
+      where: {
+        id: payment.id
+      },
+
+      data: {
+        status: "SUCCESS",
+
+        razorpayTxnId:
+          razorpay_payment_id
+      }
+    });
+
+  // mark bill paid
+  await prisma.bill.update({
+
+    where: {
+      id: payment.billId
+    },
+
+    data: {
+      status: "PAID"
+    }
+  });
+
+  //  update agreement
+  await prisma.agreement.update({
+
+    where: {
+      id:
+        payment.bill.agreement.id
+    },
+
+    data: {
+      lastPaidMonth:
+        payment.bill.billMonth,
+
+      lastPaidYear:
+        payment.bill.billYear
+    }
+  });
+
+  return updatedPayment;
+};

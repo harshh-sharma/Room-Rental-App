@@ -19,13 +19,13 @@ router.get(
 );
 
 router.get(
-  "/renter",
+  "/",
    validate(getReadingsForRenterSchema),
   protect,
   authorize("RENTER"),
   getAllReadingForRenter
 );
 
-router.get("/renter/:id", protect, authorize("OWNER", "RENTER"),getSingleReading );
+router.get("/:id", protect, authorize("OWNER", "RENTER"),getSingleReading );
 
 export default router;
