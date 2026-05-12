@@ -11,6 +11,7 @@ import billRouter from "./routes/bill.js";
 import renterRouter from "./routes/reading.js"
 import paymentConfigRouter from "./routes/paymentConfig.routes.js"
 import paymentRouter from "./routes/payment.routes.js"
+import notificationRouter from "./routes/notification.js"
 import errorMiddleware from "./middlewares/error.middleware.js";
 
 import swaggerUi from "swagger-ui-express";
@@ -37,6 +38,7 @@ app.use('/api/bills', billRouter);
 app.use('/api/renter', renterRouter);
 app.use('/api/payment-config', paymentConfigRouter);
 app.use('/api/payment', paymentRouter);
+app.use('/api/notification', notificationRouter);
 
 
 

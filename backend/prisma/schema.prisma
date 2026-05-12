@@ -58,6 +58,15 @@ enum PaymentMode {
   LIVE
 }
 
+enum NotificationType {
+  BILL_GENERATED
+  PAYMENT_SUCCESS
+  PAYMENT_REJECTED
+  READING_REJECTED
+  AGREEMENT_ENDING
+  GENERAL
+}
+
 ///////////////////////
 // USER
 ///////////////////////
@@ -77,6 +86,7 @@ model User {
 
   ownerAgreements   Agreement[] @relation("OwnerAgreements")
   renterAgreements  Agreement[] @relation("RenterAgreements")
+  notifications Notification[]
 
    paymentConfig PaymentConfig?
 }
@@ -264,4 +274,16 @@ model PaymentConfig {
   liveKeySecret   String?
 
   owner User @relation(fields: [ownerId], references: [id])
+}
+
+model Notification {
+  id Int @id @default(autoincrement())
+  receiverId Int
+  title String
+  description String
+  type NotificationType @default(GENERAL)
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  receiver User @relation(fields: [receiverId], references:[id])
 }

@@ -32,7 +32,7 @@ export const startBillCron = () => {
       try {
         logger.info(`Processing agreement ${agreement.id}`);
 
-        // 🔥 CHECK BILL EXISTS (previous month)
+        // CHECK BILL EXISTS (previous month)
         const existingBill = await prisma.bill.findFirst({
           where: {
             agreementId: agreement.id,
